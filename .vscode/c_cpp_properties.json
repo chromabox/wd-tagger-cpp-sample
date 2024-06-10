@@ -1,0 +1,27 @@
+{
+    "configurations": [
+        {
+            "name": "main",
+            "compilerPath": "/usr/bin/gcc",
+            "defines": [
+                "DEBUG",
+            ],
+            "compilerArgs": [
+                "-std=gnu++20"
+            ],
+            "includePath": [
+                "/usr/include/opencv4",
+                "./include/onnx",
+                "./include",
+            ],
+            "cppStandard": "${default}",
+            "intelliSenseMode":"linux-gcc-x64",
+            "browse": {
+                "databaseFilename": "${workspaceFolder}/.vscode/browse.out",
+                "limitSymbolsToIncludedHeaders": false,
+                "path":["${workspaceFolder}"]
+            }
+		}
+	],
+    "version": 4
+}

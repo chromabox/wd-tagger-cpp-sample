@@ -1,0 +1,65 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build debug",
+            "detail": "build debug",
+            "type": "shell",
+            "command": "bash",
+            "args": [
+                "./build.sh",
+                "--debug"
+            ],
+            "group" : "build",
+            "problemMatcher": [
+                "$gcc"
+            ],
+			"presentation": {
+				"reveal": "always",  // Terminal パネルを必ず開く
+				"clear": true,       // 実行前に Terminal をクリア
+				"echo": false        // タスク名をエコー表示しない
+			},			
+        },
+        {
+            "label": "build release",
+            "detail": "build release",
+            "type": "shell",
+            "command": "bash",
+            "args": [
+                "./build.sh",
+                "--release"
+            ],
+            "group" : "build",
+            "problemMatcher": [
+                "$gcc"
+            ],
+			"presentation": {
+				"reveal": "always",  // Terminal パネルを必ず開く
+				"clear": true,       // 実行前に Terminal をクリア
+				"echo": false        // タスク名をエコー表示しない
+			},			
+        },
+        {
+            "label": "clean",
+            "detail": "cleanup build objects",
+            "type": "shell",
+            "command": "bash",
+            "args": [
+                "./build.sh",
+                "--clean"
+            ],
+            "group" : "build",
+            "problemMatcher": [
+                "$gcc"
+            ],
+			"presentation": {
+				"reveal": "always",  // Terminal パネルを必ず開く
+				"clear": true,       // 実行前に Terminal をクリア
+				"echo": false        // タスク名をエコー表示しない
+			},
+        }
+         
+    ]
+}
