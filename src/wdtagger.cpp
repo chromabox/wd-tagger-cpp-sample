@@ -23,22 +23,107 @@
 // wd-tagger (WaifuDiffusion Tagger)をc++で扱うサンプル
 
 #include <string>
+#include <vector>
+#include <fstream>
+#include <iostream>
+#include <sstream>
+
 #include <opencv2/opencv.hpp>
 #include "onnx/onnxruntime_cxx_api.h"
 
-#define WD_MODEL_ONNX "../models/wd-vit-tagger-v2/model.onnx"
-#define WD_TAG_FNAME "../models/wd-vit-tagger-v2/tagger.csv"
+#define WD_MODEL_ONNX	"../models/wd-vit-tagger-v2/model.onnx"
+#define WD_LABEL_FNAME	"../models/wd-vit-tagger-v2/selected_tags.csv"
+
+// タグファイルに書かれているカテゴリーの意味
+#define WD_TAG_CATEGORY_RATING	9
+#define WD_TAG_CATEGORY_GENERAL	0
+#define WD_TAG_CATEGORY_CHARA	4
+
+
+class TaggerLabel
+{
+public:
+	std::string		name;
+	int				category;
+	float			score;
+
+public:
+	TaggerLabel(const std::string &sname, const std::string scategory_str){
+		name = sname;
+		category = ::atoi(scategory_str.c_str());
+		score = 0;
+	}
+};
+
+typedef std::vector<TaggerLabel>		TaggerLabelVec;
+typedef std::vector<TaggerLabel*>		TaggerLabelPtrVec;
+
+
+// delimに指定したキャラクタでトークンを切り出して結果を返す
+std::vector<std::string> StringTokenize(const std::string& src, char delim)
+{
+    std::istringstream ss(src);
+    std::string token;
+	std::vector<std::string> dests;
+
+    while (std::getline(ss, token, delim)) {
+		dests.push_back(token);
+    }
+	return dests;
+}
+
+// ラベルデータの読み込みを行う
+bool loadlabel(TaggerLabelVec &master, TaggerLabelPtrVec& ratings, TaggerLabelPtrVec& generals, TaggerLabelPtrVec& charas)
+{
+    std::ifstream labelfile(WD_LABEL_FNAME);
+
+	std::cout << "read label file..." << std::endl;
+
+	if(! labelfile){
+		std::cerr << "Error: can not open label file" << std::endl;
+		return false;
+	}
+
+    std::string line;
+	std::getline(labelfile, line);				// 最初の行は読み飛ばし
+    while (std::getline(labelfile, line)) {  	// 1行ずつ読み込む
+		std::vector<std::string> tokens = StringTokenize(line, ',');
+		if(tokens.size() < 3){
+			std::cerr << "Error: label data is invarid format" << std::endl;
+			return false;
+		}
+		// id,名前,カテゴリー,カウント数の順番
+		master.push_back(TaggerLabel(tokens[1], tokens[2]));
+	}
+
+	// カテゴリにしたがって割り振る
+	for(int i = 0; i < master.size(); i++){
+		switch(master[i].category){
+			case WD_TAG_CATEGORY_RATING:
+				ratings.push_back(&master[i]);
+				break;
+			case WD_TAG_CATEGORY_CHARA:
+				charas.push_back(&master[i]);
+				break;
+			case WD_TAG_CATEGORY_GENERAL:
+				generals.push_back(&master[i]);
+				break;
+		}
+    }
+	std::cout << "read label ok." << std::endl;
+	return true;
+}
 
 int main(int argc, char** argv )
 {
-	if ( argc != 2 ){
+	if (argc != 2){
 		std::cerr << "usage: wdtagger <Image_Path>" << std::endl;
 		return -1;
 	}
 	// イメージをファイルから読む
 	cv::Mat src_image;
-	src_image = cv::imread( argv[1], 1 );
-	if ( !src_image.data ){
+	src_image = cv::imread(argv[1], 1);
+	if (! src_image.data){
 		std::cerr << "cv::imread Error: can not read image" << std::endl;
 		return -1;
 	}
@@ -48,8 +133,12 @@ int main(int argc, char** argv )
 		return -1;
 	}
 
-//	std::string vstr = Ort::GetVersionString();
-//	std::cout << "onnxver" << vstr << std::endl;
+	TaggerLabelVec master;							// ラベルデータのマスター
+	TaggerLabelPtrVec ratings, generals, charas;	// それぞれレーティング、一般タグ、キャラ名タグ。masterへのポインタが入っている
+	// ラベルファイルを読む
+	if(! loadlabel(master, ratings, generals, charas)){
+		return -1;
+	}
 
 	std::unique_ptr<Ort::Env> ortenv;
 	std::unique_ptr<Ort::MemoryInfo> ortmem;
@@ -78,6 +167,12 @@ int main(int argc, char** argv )
 	model_insize.height = (int)input_shapes[2];
 	int	model_outsize = (int)output_shapes[1];		// batch,出力サイズの順番
 
+	// 一応モデルの出力とラベルファイルの項目サイズが一致しているかを調べる
+	if(master.size() != model_outsize){
+		std::cerr << "Error : model size is not equal label data" << std::endl;
+		return -1;
+	}
+
 	// モデルへの入出力データの確保
 	std::vector<float> model_input_data(1 * model_insize.width * model_insize.height *3);
 	std::vector<float> model_output_data(1 * model_outsize);
@@ -86,21 +181,22 @@ int main(int argc, char** argv )
 	// TODO: ここは単純にするために無理やりmodelの入力サイズに合わせているけど
 	//       元ソースのように真ん中に画像を配置したほうがいいかもしれない
 	cv::Mat tgt_image;
-    cv::resize(src_image,tgt_image, model_insize, 1 , 1, cv::INTER_CUBIC);
-//	cv::imwrite("./temp.jpg",tgt_image);		//TEST
+    cv::resize(src_image,tgt_image, model_insize, 1, 1, cv::INTER_CUBIC);
+	if(! tgt_image.isContinuous()){		// 念の為
+		std::cerr << "Error : cv::mat is not memory continuous..." << std::endl;
+		return -1;
+	}
+//	cv::imwrite("./temp.jpg",tgt_image);		// TEST
 
 	// 浮動小数点型へ直す
 	{
-		size_t mx = model_insize.width * model_insize.height * 3;
-		float *mdata = model_input_data.data();
-		unsigned char* src = tgt_image.data;
+		unsigned char* isrc = tgt_image.data;
 		// NOTE: wd-taggerのモデルはBGRでトレーニングされているらしい
-		//       なので、OpenCVはBGRで格納されているのでそのまま渡しても良い
+		//       OpenCVのMatはBGRで格納されているのでそのまま渡すことが出来るが
 		//       OpenCV以外を使う場合は気をつけないとマズい
-		for(size_t i=0; i < mx;i+=3){
-			mdata[i] = static_cast<float>(src[i]);
-			mdata[i+1] = static_cast<float>(src[i+1]);
-			mdata[i+2] = static_cast<float>(src[i+2]);
+		for (auto it = model_input_data.begin(); it != model_input_data.end(); ++it){
+			*it = static_cast<float>(*isrc);
+			isrc++;
 		}
 	}
 
@@ -135,6 +231,37 @@ int main(int argc, char** argv )
 		return -1;
 	}
 	std::cout << "predict success." << std::endl;
+
+	// ラベルのマスタデータに結果を反映
+	for(size_t i = 0; i < model_output_data.size(); i++){
+		master[i].score = model_output_data[i];
+	}
+	std::cout << "result -----  " << std::endl;
+
+	// それそれ推論結果を表示する
+	std::cout << "ratings: " << std::endl;
+	std::for_each(ratings.begin(), ratings.end(), [](const TaggerLabel* x) {
+		std::cout << "   " << x->name << ": " << x->score << std::endl;
+	});
+
+	std::cout << "tags: " << std::endl;
+	// generalタグは頻出度でソート
+    std::sort(generals.begin(), generals.end(), [](const TaggerLabel* a, const TaggerLabel* b) {
+        return a->score > b->score;
+    });	
+	for(size_t i = 0; i < 10; i++){
+		std::cout << "   " << generals[i]->name << ": " << generals[i]->score << std::endl;
+	}
+
+	std::cout << "charas: " << std::endl;
+	// 頻出度でソート
+    std::sort(charas.begin(), charas.end(), [](const TaggerLabel* a, const TaggerLabel* b) {
+        return a->score > b->score;
+    });	
+	for(size_t i = 0; i < 10; i++){
+		std::cout << "   " << charas[i]->name << ": " << charas[i]->score << std::endl;
+	}
+
 	return 0;
 }
 
