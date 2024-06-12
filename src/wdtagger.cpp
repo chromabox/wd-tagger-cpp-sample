@@ -35,17 +35,17 @@
 #define WD_LABEL_FNAME	"../models/wd-vit-tagger-v2/selected_tags.csv"
 
 // タグファイルに書かれているカテゴリーの意味
-#define WD_TAG_CATEGORY_RATING	9
-#define WD_TAG_CATEGORY_GENERAL	0
-#define WD_TAG_CATEGORY_CHARA	4
+#define WD_TAG_CATEGORY_RATING	9				// レーティング用タグ
+#define WD_TAG_CATEGORY_GENERAL	0				// 一般タグ
+#define WD_TAG_CATEGORY_CHARA	4				// キャラクター用タグ
 
-
+// ラベル一つを表すためのクラス
 class TaggerLabel
 {
 public:
-	std::string		name;
-	int				category;
-	float			score;
+	std::string		name;				// ラベル名
+	int				category;			// カテゴリ
+	float			score;				// 推論した結果を入れるためのスコア
 
 public:
 	TaggerLabel(const std::string &sname, const std::string scategory_str){
@@ -59,7 +59,7 @@ typedef std::vector<TaggerLabel>		TaggerLabelVec;
 typedef std::vector<TaggerLabel*>		TaggerLabelPtrVec;
 
 
-// delimに指定したキャラクタでトークンを切り出して結果を返す
+// delimに指定した文字でトークンを切り出して結果を返す
 std::vector<std::string> StringTokenize(const std::string& src, char delim)
 {
     std::istringstream ss(src);
@@ -140,19 +140,16 @@ int main(int argc, char** argv )
 		return -1;
 	}
 
-	std::unique_ptr<Ort::Env> ortenv;
-	std::unique_ptr<Ort::MemoryInfo> ortmem;
 	Ort::AllocatorWithDefaultOptions ortallocator;
 	Ort::Session ortsession{nullptr};
-
 	Ort::SessionOptions sessionOptions;
-	ortenv = std::make_unique<Ort::Env>(ORT_LOGGING_LEVEL_WARNING, "wdtagger");
-	ortmem = std::make_unique<Ort::MemoryInfo>(Ort::MemoryInfo::CreateCpu(OrtAllocatorType::OrtDeviceAllocator, OrtMemType::OrtMemTypeCPU));
+	Ort::Env ortenv(ORT_LOGGING_LEVEL_WARNING,"wdtagger");
+	Ort::MemoryInfo ortmem(Ort::MemoryInfo::CreateCpu(OrtAllocatorType::OrtDeviceAllocator, OrtMemType::OrtMemTypeCPU));
 
 	// Onnxモデルのロード
 	std::cout << "loading wd-tagger model... " << std::endl;
 	try{
-		ortsession = Ort::Session(*ortenv, WD_MODEL_ONNX, sessionOptions);
+		ortsession = Ort::Session(ortenv, WD_MODEL_ONNX, sessionOptions);
 	}catch(Ort::Exception& e) {
 		std::cerr << "ort::session Error:" << e.what() << std::endl;
 	}
@@ -201,8 +198,8 @@ int main(int argc, char** argv )
 	}
 
 	//入出力用のテンソルを作成する
-	Ort::Value input_tensor = Ort::Value::CreateTensor<float>(*ortmem, model_input_data.data(), model_input_data.size(), input_shapes.data(), input_shapes.size());
-	Ort::Value output_tensor = Ort::Value::CreateTensor<float>(*ortmem, model_output_data.data(), model_output_data.size(), output_shapes.data(), output_shapes.size());
+	Ort::Value input_tensor = Ort::Value::CreateTensor<float>(ortmem, model_input_data.data(), model_input_data.size(), input_shapes.data(), input_shapes.size());
+	Ort::Value output_tensor = Ort::Value::CreateTensor<float>(ortmem, model_output_data.data(), model_output_data.size(), output_shapes.data(), output_shapes.size());
 
 	// モデルの推論実行
 	std::cout << "Running predict..." << std::endl;
