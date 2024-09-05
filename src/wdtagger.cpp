@@ -55,8 +55,8 @@ public:
 	}
 };
 
-typedef std::vector<TaggerLabel>		TaggerLabelVec;
-typedef std::vector<TaggerLabel*>		TaggerLabelPtrVec;
+typedef std::vector<TaggerLabel>			TaggerLabelVec;
+typedef std::vector<const TaggerLabel*>		TaggerLabelPtrVec;
 
 
 // delimに指定した文字でトークンを切り出して結果を返す
@@ -97,19 +97,20 @@ bool loadlabel(TaggerLabelVec &master, TaggerLabelPtrVec& ratings, TaggerLabelPt
 	}
 
 	// カテゴリにしたがって割り振る
-	for(int i = 0; i < master.size(); i++){
-		switch(master[i].category){
+	for(const auto& tag: master){
+		switch(tag.category){
 			case WD_TAG_CATEGORY_RATING:
-				ratings.push_back(&master[i]);
+				ratings.push_back(&tag);
 				break;
 			case WD_TAG_CATEGORY_CHARA:
-				charas.push_back(&master[i]);
+				charas.push_back(&tag);
 				break;
 			case WD_TAG_CATEGORY_GENERAL:
-				generals.push_back(&master[i]);
+				generals.push_back(&tag);
 				break;
 		}
     }
+
 	std::cout << "read label ok." << std::endl;
 	return true;
 }
@@ -191,8 +192,8 @@ int main(int argc, char** argv )
 		// NOTE: wd-taggerのモデルはBGRでトレーニングされているらしい
 		//       OpenCVのMatはBGRで格納されているのでそのまま渡すことが出来るが
 		//       OpenCV以外を使う場合は気をつけないとマズい
-		for (auto it = model_input_data.begin(); it != model_input_data.end(); ++it){
-			*it = static_cast<float>(*isrc);
+		for (auto &idata : model_input_data){
+			idata = static_cast<float>(*isrc);
 			isrc++;
 		}
 	}
@@ -237,9 +238,9 @@ int main(int argc, char** argv )
 
 	// それそれ推論結果を表示する
 	std::cout << "ratings: " << std::endl;
-	std::for_each(ratings.begin(), ratings.end(), [](const TaggerLabel* x) {
-		std::cout << "   " << x->name << ": " << x->score << std::endl;
-	});
+	for(const auto& rt: ratings){
+		std::cout << "   " << rt->name << ": " << rt->score << std::endl;
+	}
 
 	std::cout << "tags: " << std::endl;
 	// generalタグは頻出度でソート

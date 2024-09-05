@@ -17,6 +17,7 @@ https://huggingface.co/spaces/SmilingWolf/wd-tagger
 
 はじめにビルドに必要な`cmake`とか`opencv`周りはインストールしておきます
 `onnxruntime`や`wd-tagger`のモデルのダウンロードに`wget`を使用していますのでそれも入れておきます
+ubuntu 22.04や24.04なら次のとおりになります
 ```
 $ sudo apt install build-essential cmake libopencv-dev wget
 ```
