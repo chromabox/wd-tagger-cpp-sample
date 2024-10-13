@@ -9,8 +9,12 @@
 これらのpythonで書かれたサンプルは色々あるのですが、c++で使うサンプルが見当たらない感じなので作りました  
 
 参考：  
-https://huggingface.co/SmilingWolf/wd-v1-4-vit-tagger-v2
-https://huggingface.co/spaces/SmilingWolf/wd-tagger
+https://huggingface.co/SmilingWolf/wd-v1-4-vit-tagger-v2  
+https://huggingface.co/spaces/SmilingWolf/wd-tagger  
+
+仕組みなど細かいことは以下に書いています  
+wd-taggerをC++から使う方法(onnxruntime事始め)  
+https://qiita.com/chromabox/items/ec178621cf51d18ac48d  
 
 (20241013: 追記)  
 Windowsでもビルド＆実行できるようにしました  
@@ -91,8 +95,8 @@ $ ./wdtagger 画像ファイル名
 指定する画像ファイルのチャンネル数は3でないといけません  
 つまり、透過pngやアルファチャンネルが含まれている画像ファイルはエラーになります  
 
-例として、私のアバター(https://avatars.githubusercontent.com/u/846461?v=4)を読ませると次のような結果になります  
-  
+例として、私のアバター (https://avatars.githubusercontent.com/u/846461?v=4) を読ませると次のような結果になります  
+
 タグの横に記されている値が高いほど、その要素が含まれている可能性が高いことを示します  
 `tags`と`charas`はトップ10まで表示されています  
 サンプルでは結果値の少なさに関わらずトップ10すべて表示しますが、`tags`は0.35未満、`charas`は0.85未満のタグはあまり信用できないかもしれない結果ということのようです

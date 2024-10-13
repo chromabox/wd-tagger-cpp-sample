@@ -35,7 +35,7 @@
 #define WD_MODEL_ONNX	L"../../models/wd-vit-tagger-v2/model.onnx"
 #define WD_LABEL_FNAME	"../../models/wd-vit-tagger-v2/selected_tags.csv"
 #else
-#define WD_MODEL_ONNX	L"../models/wd-vit-tagger-v2/model.onnx"
+#define WD_MODEL_ONNX	"../models/wd-vit-tagger-v2/model.onnx"
 #define WD_LABEL_FNAME	"../models/wd-vit-tagger-v2/selected_tags.csv"
 #endif
 
