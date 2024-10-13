@@ -59,7 +59,47 @@
 				"clear": true,       // 実行前に Terminal をクリア
 				"echo": false        // タスク名をエコー表示しない
 			},
-        }
+        },
+        {
+            "label": "build (windows)",
+            "detail": "build (windows)",
+            "type": "shell",
+            "command": "cmd.exe",
+            "args": [
+                "/k",
+                "build.bat",
+                "debug"
+            ],
+            "group" : "build",
+            "problemMatcher": [
+                "$msCompile"
+            ],
+			"presentation": {
+				"reveal": "always",  // Terminal パネルを必ず開く
+				"clear": true,       // 実行前に Terminal をクリア
+				"echo": false        // タスク名をエコー表示しない
+			},			
+        },
+        {
+            "label": "clean (windows)",
+            "detail": "clean (windows)",
+            "type": "shell",
+            "command": "cmd.exe",
+            "args": [
+                "/k",
+                "build.bat",
+                "clean"
+            ],
+            "group" : "build",
+            "problemMatcher": [
+                "$msCompile"
+            ],
+			"presentation": {
+				"reveal": "always",  // Terminal パネルを必ず開く
+				"clear": true,       // 実行前に Terminal をクリア
+				"echo": false        // タスク名をエコー表示しない
+			},			
+        },
          
     ]
 }

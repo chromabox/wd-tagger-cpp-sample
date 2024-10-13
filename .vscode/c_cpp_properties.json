@@ -4,7 +4,7 @@
             "name": "main",
             "compilerPath": "/usr/bin/gcc",
             "defines": [
-                "DEBUG",
+                "DEBUG"
             ],
             "compilerArgs": [
                 "-std=gnu++20"
@@ -12,10 +12,30 @@
             "includePath": [
                 "/usr/include/opencv4",
                 "./include/onnx",
-                "./include",
+                "./include"
             ],
             "cppStandard": "${default}",
             "intelliSenseMode":"linux-gcc-x64",
+            "browse": {
+                "databaseFilename": "${workspaceFolder}/.vscode/browse.out",
+                "limitSymbolsToIncludedHeaders": false,
+                "path":["${workspaceFolder}"]
+            }
+		},
+        {
+            "name": "msvc",
+            "defines": [
+                "DEBUG"
+            ],
+            "compilerArgs": [
+            ],
+            "includePath": [
+                "D:/vcpkg/installed/x64-windows/include",
+                "./include/onnx",
+                "./include"
+            ],
+            "cppStandard": "${default}",
+            "intelliSenseMode":"msvc-x64",
             "browse": {
                 "databaseFilename": "${workspaceFolder}/.vscode/browse.out",
                 "limitSymbolsToIncludedHeaders": false,

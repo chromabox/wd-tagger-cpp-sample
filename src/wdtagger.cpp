@@ -31,8 +31,13 @@
 #include <opencv2/opencv.hpp>
 #include "onnx/onnxruntime_cxx_api.h"
 
-#define WD_MODEL_ONNX	"../models/wd-vit-tagger-v2/model.onnx"
+#if defined _MSC_VER
+#define WD_MODEL_ONNX	L"../../models/wd-vit-tagger-v2/model.onnx"
+#define WD_LABEL_FNAME	"../../models/wd-vit-tagger-v2/selected_tags.csv"
+#else
+#define WD_MODEL_ONNX	L"../models/wd-vit-tagger-v2/model.onnx"
 #define WD_LABEL_FNAME	"../models/wd-vit-tagger-v2/selected_tags.csv"
+#endif
 
 // タグファイルに書かれているカテゴリーの意味
 #define WD_TAG_CATEGORY_RATING	9				// レーティング用タグ

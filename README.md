@@ -12,7 +12,9 @@
 https://huggingface.co/SmilingWolf/wd-v1-4-vit-tagger-v2
 https://huggingface.co/spaces/SmilingWolf/wd-tagger
 
-
+(20241013: 追記)  
+Windowsでもビルド＆実行できるようにしました  
+  
 ## ビルド方法(ubuntu/linux):
 
 はじめにビルドに必要な`cmake`とか`opencv`周りはインストールしておきます
@@ -29,14 +31,63 @@ $ ./build.sh
 でとりあえずビルド出来ます。  
 onnxruntimeはビルド時に自動的にonnxlibにダウンロードしています。
 また、wdのtaggerモデルもビルド時にmodelsにダウンロードしています。
+  
+`VsCode`を使っている場合は、「ターミナル」→「ビルドタスクの実行」→「build debug」でもビルドができます。
+
+## ビルド方法(windows 10/11 use VisualStudio 2022 Community):
+  
+前提条件としてwindows 10でもcurlやtarが使用可能なバージョンである必要があります。  
+(Updateをしていればおそらく大丈夫と思います。Windows10ならversion 1809 (October 2018 Update) 以降)  
+また、ビルドにVisualStudio 2022の`cl`を使うので、VisualStudio 2022 Communityの環境もインストールしておいてください。  
+vcpkgも入れておいてください。  
+  
+例：vcpkgをDドライブ直下へインストール
+```powershell
+> cd /d d:\
+> git clone https://github.com/microsoft/vcpkg
+> cd vcpkg
+> bootstrap-vcpkg.bat
+その後「システムのプロパティ」→「環境変数」で、VCPKG_ROOTにd:\vcpkgを設定
+```
+
+準備できたらビルドに必要な`cmake`とか`opencv`周りはインストールしておきます
+`winget`や`vcpkg`を使用して入れておきます
+```powershell
+> winget install cmake
+> vcpkg install opencv
+```
+  
+注意点として、vcpkgがDドライブ直下以外に入っている場合（Cドライブに入っている場合など）は`CMakeLists.txt`の以下項目を変更してください。
+```
+set(CMAKE_TOOLCHAIN_FILE "D:/vcpkg/scripts/buildsystems/vcpkg.cmake")
+```
+
+その後cloneしてから  
+```powershell
+> build.bat
+```
+でとりあえずビルド出来ます。  
+onnxruntimeはビルド時に自動的にonnxlibにダウンロードしています。
+また、wdのtaggerモデルもビルド時にmodelsにダウンロードしています。
+
+`VsCode`を使っている場合は、「ターミナル」→「ビルドタスクの実行」→「build (windows)」でもビルドができます。
+
 
 ## 使い方
 
 buildディレクトリにwdtagger実行ファイルがあるので、以下のようにして実行します
-```
+- Ubuntu環境の場合
+```bash
 $ cd build
 $ ./wdtagger 画像ファイル名
 ```
+  
+- Windows環境の場合
+```powershell
+> cd build/Debug
+> .\wdtagger.exe 画像ファイル名
+```
+
 指定する画像ファイルのチャンネル数は3でないといけません  
 つまり、透過pngやアルファチャンネルが含まれている画像ファイルはエラーになります  
 
@@ -107,4 +158,3 @@ models/モデル名/selected_tags.csv
 
 
 ## TODO:
-- Windowsでの例を入れる
