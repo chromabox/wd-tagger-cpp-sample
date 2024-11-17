@@ -169,6 +169,9 @@ int main(int argc, char** argv )
 	model_insize.width = (int)input_shapes[1];		// batch,width,height,channelの順番
 	model_insize.height = (int)input_shapes[2];
 	int	model_outsize = (int)output_shapes[1];		// batch,出力サイズの順番
+	// バッチ数設定。1つしか入れないので1。
+	input_shapes[0] = 1;
+	output_shapes[0] = 1;
 
 	// 一応モデルの出力とラベルファイルの項目サイズが一致しているかを調べる
 	if(master.size() != model_outsize){
